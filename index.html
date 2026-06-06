@@ -999,7 +999,7 @@
     const name  = document.getElementById('f-name').value.trim();
     const phone = document.getElementById('f-phone').value.trim();
 
-    if (!name) { alert('⚠️ Vui lòng nhập họ và tên.'); return; }
+    if (!name)  { alert('⚠️ Vui lòng nhập họ và tên.'); return; }
     if (!phone) { alert('⚠️ Vui lòng nhập số điện thoại.'); return; }
 
     const btn = document.getElementById('submit-btn');
@@ -1007,40 +1007,40 @@
     btn.textContent = '⏳ Đang gửi...';
     btn.style.opacity = '.7';
 
-    const formData = new FormData();
-    formData.append('name',    name);
-    formData.append('phone',   phone);
-    formData.append('package', document.getElementById('f-package').value);
-    formData.append('date',    document.getElementById('f-date').value);
-    formData.append('time',    document.getElementById('f-time').value);
-    formData.append('level',   document.getElementById('f-level').value);
-    formData.append('note',    document.getElementById('f-note').value.trim());
+    const params = new URLSearchParams({
+      action:  'register',
+      name,
+      phone,
+      package: document.getElementById('f-package').value,
+      date:    document.getElementById('f-date').value,
+      time:    document.getElementById('f-time').value,
+      level:   document.getElementById('f-level').value,
+      note:    document.getElementById('f-note').value.trim()
+    });
 
     try {
-      await fetch(SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: formData
-      });
+      const res  = await fetch(SHEET_URL + '?' + params.toString(), { method: 'GET' });
+      const data = await res.json();
 
-      // Thành công
-      btn.textContent = '✅ Đã gửi thành công!';
-      btn.style.background = 'var(--accent)';
-      btn.style.opacity = '1';
+      if (data.success) {
+        btn.textContent = '✅ Đã gửi thành công!';
+        btn.style.background = 'var(--accent)';
+        btn.style.opacity = '1';
 
-      // Reset form sau 2s
-      setTimeout(() => {
-        ['f-name','f-phone','f-date','f-note'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('f-package').selectedIndex = 0;
-        btn.disabled = false;
-        btn.textContent = '✅ GỬI ĐĂNG KÝ TƯ VẤN';
-        btn.style.background = 'var(--green)';
-      }, 3000);
+        setTimeout(() => {
+          ['f-name','f-phone','f-date','f-note'].forEach(id => document.getElementById(id).value = '');
+          document.getElementById('f-package').selectedIndex = 0;
+          btn.disabled = false;
+          btn.textContent = '✅ GỬI ĐĂNG KÝ TƯ VẤN';
+          btn.style.background = 'var(--green)';
+        }, 3000);
 
-      // Thông báo
-      setTimeout(() => {
-        alert('🎉 Đăng ký thành công!\n\nHLV Phước sẽ liên hệ lại trong 1 giờ qua Zalo hoặc điện thoại 0914 772 272.\n\nCảm ơn bạn đã tin tưởng!');
-      }, 300);
+        setTimeout(() => {
+          alert('🎉 Đăng ký thành công!\n\nHLV Phước sẽ liên hệ lại trong 1 giờ qua Zalo hoặc điện thoại 0914 772 272.\n\nCảm ơn bạn đã tin tưởng!');
+        }, 300);
+      } else {
+        throw new Error(data.error || 'Lỗi không xác định');
+      }
 
     } catch (err) {
       btn.disabled = false;
